@@ -114,7 +114,7 @@ If that's good, we can go ahead and apply the deploy:
 terraform apply
 ```
 
-You'll need to enter yes when prompted. The apply can take up to twenty minutes to run.
+You'll need to enter yes when prompted. If you have selected the public IP address option or are provisioning the bastion host, the apply will execute a step to wait for the entire provisioning step to complete. Otherwise, the provisioning step will run as a background task.  The provisioning step can take up to twenty minutes to run.
 
 ![terraform apply](./images/03_terraform_apply.png)
 
