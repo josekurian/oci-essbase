@@ -7,7 +7,7 @@
 
 ![essbase-stack](https://github.com/oracle-quickstart/oci-essbase/workflows/essbase-stack/badge.svg)
 
-> **WARNING**: This branch provides a preview of the upcoming changes in the 19.3.0.0.4 release. Some changes may not have been fully tested and not recommended for production.
+> **WARNING**: This branch provides a preview of the upcoming changes in the 19.3.0.0.4 release. Some changes may not have been tested, and are subject to change. This branch is not recommended for production.
 
 [Oracle Essbase][essbase] is a business analytics solution that uses a proven, flexible, best-in-class architecture for analysis, reporting, and collaboration. It delivers instant value and greater productivity for your business users, analysts, modelers, and decision-makers, across all lines of business within your organization. You can interact with Essbase, through a web or Microsoft Office interface, to analyze, model, collaborate, and report.
 
