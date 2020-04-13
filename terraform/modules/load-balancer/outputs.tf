@@ -2,7 +2,7 @@
 ## Licensed under the Universal Permissive License v1.0 as shown at http://oss.oracle.com/licenses/upl.
 
 locals {
-  external_loadbalancer_ip = element(local.public_ips[0], 0)
+  external_loadbalancer_ip = element(local.ip_addresses[0], 0)
   external_url = local.enabled ? format(
     "https://%s/essbase",
     local.external_loadbalancer_ip,

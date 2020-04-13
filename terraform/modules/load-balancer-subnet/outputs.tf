@@ -9,3 +9,7 @@ output "subnet_count" {
   value = var.enabled ? local.lb_subnet_count : 0
 }
 
+output "private_subnet" {
+  value = false
+}
+

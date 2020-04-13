@@ -43,6 +43,11 @@ variable "route_table_id" {
   type = string
 }
 
+variable "create_private_subnet" {
+  type = bool
+  default = false
+}
+
 // Tags
 variable "freeform_tags" {
   type = map(string)

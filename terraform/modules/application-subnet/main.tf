@@ -15,23 +15,25 @@ resource "oci_core_security_list" "application" {
   defined_tags   = var.defined_tags
 
   ingress_security_rules {
-    // Allow inbound traffic to WLS ports
-    protocol  = "6" // tcp
+    // Allow inbound traffic to embedded Apache HTTPD SSL port
+    protocol  = 6 // tcp
     source    = local.all_cidr
     stateless = false
+    description = "Allow inbound traffic to HTTPS"
 
     tcp_options {
       // These values correspond to the destination port range.
-      min = "443"
-      max = "443"
+      min = 443
+      max = 443
     }
   }
 
   ingress_security_rules {
-    // Allow inbound ssh traffic for now...
-    protocol  = "6" // tcp
+    // Allow inbound ssh traffic...
+    protocol  = 6 // tcp
     source    = local.all_cidr
     stateless = false
+    description = "Allow inbound traffic for SSH"
 
     tcp_options {
       // These values correspond to the destination port range.
@@ -45,6 +47,7 @@ resource "oci_core_security_list" "application" {
     protocol  = 1
     source    = local.all_cidr
     stateless = false
+    description = "Allow inbound traffic for ICMP"
 
     icmp_options {
       type = 3

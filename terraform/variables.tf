@@ -28,7 +28,7 @@ variable "application_subnet_cidr" {
   default = "10.0.1.0/24"
 }
 
-variable "create_private_application_subnet" {
+variable "create_public_essbase_instance" {
   type    = bool
   default = false
 }
@@ -51,6 +51,12 @@ variable "existing_application_subnet_compartment_id" {
 variable "existing_application_subnet_id" {
   type    = string
   default = ""
+}
+
+// Bastion configuration
+variable "create_bastion" {
+  type    = bool
+  default = false
 }
 
 variable "bastion_listing_resource_id" {
@@ -153,11 +159,6 @@ variable "rcu_schema_prefix" {
   default = ""
 }
 
-variable "assign_instance_public_ip" {
-  type    = bool
-  default = true
-}
-
 // Security configuration
 variable "security_mode" {
   // "embedded" or "idcs"
@@ -256,6 +257,11 @@ variable "oci_db_admin_password_encrypted" {
 variable "create_load_balancer" {
   type    = bool
   default = false
+}
+
+variable "create_public_load_balancer" {
+  type    = bool
+  default = true
 }
 
 variable "load_balancer_shape" {

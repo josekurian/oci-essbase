@@ -14,10 +14,11 @@ resource "oci_load_balancer" "loadbalancer" {
   display_name = "${var.display_name_prefix}-loadbalancer"
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
+  is_private    = var.is_private
 }
 
 locals {
-  public_ips = coalescelist(
+  ip_addresses = coalescelist(
     oci_load_balancer.loadbalancer.*.ip_addresses,
     local.empty_list,
   )

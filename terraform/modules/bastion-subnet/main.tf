@@ -17,9 +17,10 @@ resource "oci_core_security_list" "bastion" {
 
   ingress_security_rules {
     // Allow inbound ssh traffic...
-    protocol  = "6" // tcp
+    protocol  = 6 // tcp
     source    = local.all_cidr
     stateless = false
+    description = "Allow inbound traffic for SSH"
 
     tcp_options {
       // These values correspond to the destination port range.
@@ -33,6 +34,7 @@ resource "oci_core_security_list" "bastion" {
     protocol  = 1
     source    = local.all_cidr
     stateless = false
+    description = "Allow inbound traffic for ICMP"
 
     icmp_options {
       type = 3
@@ -46,6 +48,7 @@ resource "oci_core_security_list" "bastion" {
     destination_type = "CIDR_BLOCK"
     protocol         = "all"
   }
+
 }
 
 resource "oci_core_subnet" "bastion" {

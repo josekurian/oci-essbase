@@ -23,7 +23,6 @@ groupings:
   - ${compartment_ocid}
   - ${kms_key_id}
   - ${kms_crypto_endpoint}
-  - ${show_advanced_options}
 
 - title: "Essbase Instance"
   variables:
@@ -43,29 +42,6 @@ groupings:
   - ${idcs_client_secret_encrypted}
   - ${idcs_external_admin_username}
 
-- title: "Network Configuration"
-  variables:
-  - ${use_existing_vcn}
-  - ${existing_vcn_compartment_id}
-  - ${vcn_cidr}
-  - ${existing_vcn_id}
-  - ${application_subnet_cidr}
-  - ${existing_application_subnet_compartment_id}
-  - ${existing_application_subnet_id}
-  - ${create_private_application_subnet}
-  - ${assign_instance_public_ip}
-  - ${bastion_listing_resource_id}
-  - ${bastion_instance_shape}
-  - ${bastion_subnet_cidr}
-  - ${existing_bastion_subnet_compartment_id}
-  - ${existing_bastion_subnet_id}
-  - ${create_load_balancer}
-  - ${load_balancer_shape}
-  - ${load_balancer_subnet_cidr}
-  - ${existing_load_balancer_subnet_compartment_id}
-  - ${existing_load_balancer_subnet_id}
-  - ${existing_load_balancer_subnet_id_2}
-
 - title: "Database Configuration"
   variables:
   - ${use_existing_db}
@@ -80,6 +56,37 @@ groupings:
   - ${existing_oci_db_system_database_pdb_name}
   - ${oci_db_admin_username}
   - ${oci_db_admin_password_encrypted}
+
+- title: "Network Configuration"
+  variables:
+  - ${use_existing_vcn}
+  - ${show_advanced_options}
+  - ${existing_vcn_compartment_id}
+  - ${vcn_cidr}
+  - ${existing_vcn_id}
+  - ${create_public_essbase_instance}
+  - ${application_subnet_cidr}
+  - ${existing_application_subnet_compartment_id}
+  - ${existing_application_subnet_id}
+
+- title: "Load Balancer Configuration"
+  variables:
+  - ${create_load_balancer}
+  - ${create_public_load_balancer}
+  - ${load_balancer_shape}
+  - ${load_balancer_subnet_cidr}
+  - ${existing_load_balancer_subnet_compartment_id}
+  - ${existing_load_balancer_subnet_id}
+  - ${existing_load_balancer_subnet_id_2}
+
+- title: "Bastion Configuration"
+  variables:
+  - ${create_bastion}
+  - ${bastion_listing_resource_id}
+  - ${bastion_instance_shape}
+  - ${bastion_subnet_cidr}
+  - ${existing_bastion_subnet_compartment_id}
+  - ${existing_bastion_subnet_id}
 
 variables:
   # General Configuration
@@ -127,12 +134,6 @@ variables:
     pattern: "^([a-zA-Z_][a-zA-Z0-9\\-_]*)?$"
     required: false
 
-  show_advanced_options:
-    title: Show Advanced Options
-    description: Enable advanced options on this page.
-    type: boolean
-    default: false
-
   # Create Network options
   use_existing_vcn:
     title: Use Existing Network
@@ -140,38 +141,44 @@ variables:
     type: boolean
     default: false
 
+  show_advanced_options:
+    title: Show Advanced Network Options
+    description: Enable advanced network options
+    type: boolean
+    default: false
+    visible:
+      not:
+      - ${use_existing_vcn}
+
   vcn_cidr:
     title: Virtual Network CIDR
     description: The CIDR to assign to the new virtual cloud network (VCN) to create for this service.
+    type: string
+    default: 10.0.0.0/16
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
     visible:
       and:
       - ${show_advanced_options}
       - not:
         - ${use_existing_vcn}
-    type: string
-    default: 10.0.0.0/16
-    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
     required: true
 
   application_subnet_cidr:
     title: Application Subnet CIDR
     description: The CIDR to assign to the subnet for the target Essbase compute node. This will be created as a regional subnet.
+    type: string
+    default: 10.0.1.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
     visible:
       and:
       - ${show_advanced_options}
       - not:
         - ${use_existing_vcn}
-    type: string
-    default: 10.0.1.0/24
-    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
     required: true
 
-  create_private_application_subnet:
-    title: Create a private Essbase subnet
-    description: Create a private subnet for the Essbase node. A bastion host will be also created.
-    visible:
-      not:
-      - ${use_existing_vcn}
+  create_public_essbase_instance:
+    title: Public Essbase node visibility
+    description: Select if you want the Essbase node to have a public IP address.
     type: boolean
     default: false
 
@@ -188,9 +195,9 @@ variables:
     description: Select an existing VCN in which to create the compute resources.
     type: oci:core:vcn:id
     visible: ${use_existing_vcn}
+    required: true
     dependsOn:
       compartmentId: ${existing_vcn_compartment_id}
-    required: true
 
   existing_application_subnet_compartment_id:
     title: Target application subnet compartment
@@ -208,7 +215,17 @@ variables:
     dependsOn:
       compartmentId: ${existing_application_subnet_compartment_id}
       vcnId: ${existing_vcn_id}
+      hidePrivateSubnet: ${create_public_essbase_instance}
     required: true
+
+  create_bastion:
+    title: Provision Bastion
+    description: Provision a bastion in Oracle Cloud Infrastructure to allow for connections.
+    type: boolean
+    default: false
+    visible:
+      not:
+      - ${create_public_essbase_instance}
 
   bastion_listing_resource_id:
     title: Bastion Image OCID
@@ -217,18 +234,17 @@ variables:
   bastion_subnet_cidr:
     title: Bastion Subnet CIDR
     description: The CIDR to assign to the subnet for the bastion host. This will be created as a regional subnet.
-    visible:
-      and:
-      - ${show_advanced_options}
-      - not:
-        - ${use_existing_vcn}
-      - or:
-        - ${create_private_application_subnet}
-        - not:
-          - ${assign_instance_public_ip}
     type: string
     default: 10.0.2.0/24
     pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
+    visible:
+      and:
+      - ${show_advanced_options}
+      - ${create_bastion}
+      - not:
+        - ${create_public_essbase_instance}
+      - not:
+        - ${use_existing_vcn}
     required: true
 
   existing_bastion_subnet_compartment_id:
@@ -239,8 +255,9 @@ variables:
     visible:
       and:
       - ${use_existing_vcn}
+      - ${create_bastion}
       - not:
-        - ${assign_instance_public_ip}
+        - ${create_public_essbase_instance}
     required: true
 
   existing_bastion_subnet_id:
@@ -250,23 +267,24 @@ variables:
     visible: 
       and:
       - ${use_existing_vcn}
+      - ${create_bastion}
       - not:
-        - ${assign_instance_public_ip}
+        - ${create_public_essbase_instance}
+    required: true
     dependsOn:
       compartmentId: ${existing_bastion_subnet_compartment_id}
       vcnId: ${existing_vcn_id} 
-    required: true
 
   bastion_instance_shape:
     title: Bastion Instance Shape
     description: The shape for the bastion compute instance.
     type: oci:core:instanceshape:name
-    visible:
-      or:
-      - ${create_private_application_subnet}
-      - not:
-        - ${assign_instance_public_ip}
     default: VM.Standard.E2.1
+    visible:
+      and:
+      - ${create_bastion}
+      - not:
+        - ${create_public_essbase_instance}
     required: true
     dependsOn:
       compartmentId: ${compartment_ocid}
@@ -305,20 +323,6 @@ variables:
     required: true
     dependsOn:
       compartmentId: ${compartment_ocid}
-
-  assign_instance_public_ip:
-    title: Assign Public IP Address
-    description: If the subnet allows for a public ip address, assign one to the Essbase instance.
-    type: boolean
-    visible:
-      or:
-      - ${use_existing_vcn}
-      - and:
-        - not:
-          - ${use_existing_vcn}
-        - not:
-          - ${create_private_application_subnet}
-    default: true
 
   ssh_public_key:
     title: SSH Public Key
@@ -363,9 +367,9 @@ variables:
     title: RCU Schema Prefix
     description: Schema prefix to use when running RCU. A value with be automatically generated if not specified.
     type: string
-    visible: false
     maxLength: 12
     pattern: "^([a-zA-Z][a-zA-Z0-9]{0,11})?$"
+    visible: false
 
   # Load balancer options
   create_load_balancer:
@@ -373,6 +377,13 @@ variables:
     description: Provision a load balancer in Oracle Cloud Infrastructure. The load balancer will be provisioned with a demo certificate. The use of demo certificate is not recommended for production workloads.
     type: boolean
     default: false
+
+  create_public_load_balancer:
+    title: Public Load Balancer Visibility
+    description: Select if you want the load balancer to have a public IP address.
+    type: boolean
+    default: true
+    visible: ${create_load_balancer}
 
   load_balancer_shape:
     title: Load Balancer Shape
@@ -388,15 +399,15 @@ variables:
   load_balancer_subnet_cidr:
     title: Load Balancer Subnet
     description: The CIDR to assign to the subnet for the load balancer.  This will be created as regional subnet.
+    type: string
+    default: 10.0.4.0/24
+    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
     visible:
       and:
       - ${show_advanced_options}
       - ${create_load_balancer}
       - not:
         - ${use_existing_vcn}
-    type: string
-    default: 10.0.4.0/24
-    pattern: "^(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9]).(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\\/(3[0-2]|[1-2]?[0-9])$"
     required: true
 
   existing_load_balancer_subnet_compartment_id:
@@ -418,10 +429,11 @@ variables:
       and:
       - ${create_load_balancer}
       - ${use_existing_vcn}
+    required: true
     dependsOn:
       compartmentId: ${existing_load_balancer_subnet_compartment_id}
       vcnId: ${existing_vcn_id}
-    required: true
+      hidePrivateSubnet: ${create_public_load_balancer}
 
   existing_load_balancer_subnet_id_2:
     title: Select Secondary Load Balancer Subnet
@@ -431,10 +443,12 @@ variables:
       and:
       - ${create_load_balancer}
       - ${use_existing_vcn}
+      - ${create_public_load_balancer}
     dependsOn:
       compartmentId: ${existing_load_balancer_subnet_compartment_id}
       vcnId: ${existing_vcn_id}
       hideRegionalSubnet: true
+      hidePrivateSubnet: ${create_public_load_balancer}
 
   # Database options
   use_existing_db:
@@ -462,16 +476,16 @@ variables:
   existing_db_id:
     title: Target ATP database
     description: Target ATP database in which to create the Essbase schema.
+    type: oci:database:autonomousdatabase:id
     visible:
       and:
       - eq:
         - ${existing_db_type}
         - "Autonomous Database"
       - ${use_existing_db}
-    type: oci:database:autonomousdatabase:id
+    required: true
     dependsOn:
       compartmentId: ${existing_db_compartment_id} 
-    required: true
 
   db_admin_password_encrypted:
     title: Database Admin User Password (Encrypted)
@@ -489,14 +503,14 @@ variables:
 
   db_license_model:
     title: Database License
-    visible:
-      not:
-      - ${use_existing_db}
     type: enum
     enum:
     - LICENSE_INCLUDED
     - BRING_YOUR_OWN_LICENSE
     default: BRING_YOUR_OWN_LICENSE
+    visible:
+      not:
+      - ${use_existing_db}
     required: true
 
 
@@ -517,14 +531,14 @@ variables:
     description: Target database system in which to create the Essbase schema.
     type: oci:database:dbsystem:id
     visible: 
-      and: 
+      and:
       - eq:
         - ${existing_db_type}
         - "Database System"
       - ${use_existing_db}
+    required: true
     dependsOn:
       compartmentId: ${existing_db_compartment_id}
-    required: true
 
   existing_oci_db_system_dbhome_id:
     title: Database home in the DB System
@@ -551,14 +565,14 @@ variables:
         - ${existing_db_type}
         - "Database System"
       - ${use_existing_db}
+    required: true
     dependsOn:
       compartmentId: ${existing_db_compartment_id}
       dbHomeId: ${existing_oci_db_system_dbhome_id}
-    required: true
 
   existing_oci_db_system_database_pdb_name:
     title: Database PDB Name
-    description: The name of the pdb in the target database. Required if not using the default pdb created during database provision.
+    description: The name of the existing pdb in the target database. Required if not using the default pdb created during database provision.
     type: string
     pattern: "^([a-zA-Z0-9][a-zA-Z0-9_]*)?$"
     visible:
@@ -632,11 +646,11 @@ variables:
     title: IDCS Application Client Secret (Encrypted)
     description: Provide the client secret for the IDCS application, encrypted with the provided KMS key.
     type: string
+    pattern: "^(?:[a-zA-Z0-9+\/]{4})*(?:|(?:[a-zA-Z0-9+\/]{3}=)|(?:[a-zA-Z0-9+\/]{2}==)|(?:[a-zA-Z0-9+\/]{1}===))$"
     visible:
       eq:
       - ${security_mode}
       - idcs
-    pattern: "^(?:[a-zA-Z0-9+\/]{4})*(?:|(?:[a-zA-Z0-9+\/]{3}=)|(?:[a-zA-Z0-9+\/]{2}==)|(?:[a-zA-Z0-9+\/]{1}===))$"
     required: true
 
   idcs_external_admin_username:
@@ -675,12 +689,13 @@ outputs:
     type: string
   essbase_post_logout_redirect_url:
     title: Essbase Post Logout Redirect URL
+    type: string
+  essbase_node_display_name:
+    title: Essbase Node Name
+    type: string
   essbase_node_id:
     title: Essbase Node Instance OCID
     type: ocid
-  essbase_node_domain_name:
-    title: Essbase Node Hostname
-    type: string
   essbase_node_public_ip:
     title: Essbase Node Public IP
     type: string
@@ -702,12 +717,16 @@ outputs:
   idcs_client_id:
     title: IDCS Application Client ID
     type: string
+  z_messages:
+    title: Messages
+    type: string
+    visible: false
 
 outputGroups:
 - title: Essbase Instance
   outputs:
+  - ${essbase_node_display_name}
   - ${essbase_node_id}
-  - ${essbase_node_domain_name}
   - ${essbase_node_public_ip}
   - ${essbase_node_private_ip}
   - ${essbase_url}
@@ -725,6 +744,10 @@ outputGroups:
   - ${idcs_client_id}
   - ${essbase_redirect_url}
   - ${essbase_post_logout_redirect_url}
+
+- title: Other
+  outputs:
+  - ${z_messages}
 
 primaryOutputButton: ${essbase_external_url}
 

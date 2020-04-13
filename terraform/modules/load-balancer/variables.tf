@@ -47,6 +47,11 @@ variable "idle_timeout" {
   default = 300
 }
 
+variable "is_private" {
+  type    = bool
+  default = false
+}
+
 // Tags
 variable "freeform_tags" {
   type = map(string)

@@ -32,7 +32,6 @@ resource "oci_objectstorage_bucket" "essbase_metadata" {
 # Volumes
 #
 resource "oci_core_volume" "essbase_data" {
-  count               = var.enable_data_volume ? 1 : 0
   availability_domain = var.availability_domain
   compartment_id      = var.compartment_id
   display_name        = "${var.display_name_prefix}-data-volume-1"
@@ -42,7 +41,6 @@ resource "oci_core_volume" "essbase_data" {
 }
 
 resource "oci_core_volume" "essbase_config" {
-  count               = var.enable_config_volume ? 1 : 0
   availability_domain = var.availability_domain
   compartment_id      = var.compartment_id
   display_name        = "${var.display_name_prefix}-config-volume-1"
@@ -52,17 +50,16 @@ resource "oci_core_volume" "essbase_config" {
 }
 
 resource "oci_core_volume_group" "essbase_volume_group" {
-  count               = var.enable_data_volume || var.enable_config_volume ? 1 : 0
   availability_domain = var.availability_domain
   compartment_id      = var.compartment_id
 
   source_details {
     type = "volumeIds"
 
-    volume_ids = concat(
-      oci_core_volume.essbase_config.*.id,
-      oci_core_volume.essbase_data.*.id,
-    )
+    volume_ids = [
+      oci_core_volume.essbase_config.id,
+      oci_core_volume.essbase_data.id,
+    ]
   }
 
   display_name  = "${var.display_name_prefix}-volume-group"
@@ -162,9 +159,13 @@ MIME-Version: 1.0
 Content-Type: text/x-shellscript
 
 ${file("${path.module}/scripts/configure_volumes.sh")}
+--boundary-0123456789
+MIME-Version: 1.0
+Content-Type: text/x-shellscript
+
+${file("${path.module}/scripts/configure_essbase.sh")}
 --boundary-0123456789--
 TMPL
-
 }
 
 #
@@ -192,7 +193,7 @@ resource "oci_core_instance" "essbase" {
   metadata = {
     ssh_authorized_keys  = var.ssh_authorized_keys
     user_data            = base64gzip(local.cloud_init)
-    volume_group_ocid    = join("", oci_core_volume_group.essbase_volume_group.*.id)
+    volume_group_ocid    = oci_core_volume_group.essbase_volume_group.id
     kms_key_ocid         = var.kms_key_id
     metadata_bucket_id   = oci_objectstorage_bucket.essbase_metadata.id
     metadata_bucket_ns   = oci_objectstorage_bucket.essbase_metadata.namespace
@@ -200,7 +201,7 @@ resource "oci_core_instance" "essbase" {
   }
 
   extended_metadata = {
-    volume_ocids = jsonencode(compact(concat(oci_core_volume.essbase_data.*.id, oci_core_volume.essbase_config.*.id)))
+    volume_ocids = jsonencode([ oci_core_volume.essbase_data.id, oci_core_volume.essbase_config.id ])
   }
 
   timeouts {
@@ -217,24 +218,22 @@ resource "oci_core_instance" "essbase" {
 # Data volume attachment
 #
 resource "oci_core_volume_attachment" "essbase_data" {
-  count           = var.enable_data_volume ? 1 : 0
   attachment_type = "iscsi"
   instance_id     = oci_core_instance.essbase.id
-  volume_id       = join("", oci_core_volume.essbase_data.*.id)
+  volume_id       = oci_core_volume.essbase_data.id
 
   display_name = "${var.display_name_prefix}-data-volume-1-attachment"
 }
 
 resource "oci_objectstorage_object" "essbase_data_volume_metadata" {
-  count     = var.enable_data_volume ? 1 : 0
   bucket    = oci_objectstorage_bucket.essbase_metadata.name
   namespace = oci_objectstorage_bucket.essbase_metadata.namespace
-  object    = format("%s/%s.dat", oci_core_instance.essbase.id, join("", oci_core_volume.essbase_data.*.id))
+  object    = format("%s/%s.dat", oci_core_instance.essbase.id, oci_core_volume.essbase_data.id)
   content = jsonencode({
     "path" = local.data_volume_mount,
-    "iqn" = join("", oci_core_volume_attachment.essbase_data.*.iqn),
-    "ipv4" = join("", oci_core_volume_attachment.essbase_data.*.ipv4),
-    "port" = join("", oci_core_volume_attachment.essbase_data.*.port)
+    "iqn" = oci_core_volume_attachment.essbase_data.iqn,
+    "ipv4" = oci_core_volume_attachment.essbase_data.ipv4,
+    "port" = oci_core_volume_attachment.essbase_data.port
   })
 
 }
@@ -243,43 +242,34 @@ resource "oci_objectstorage_object" "essbase_data_volume_metadata" {
 # Config volume attachment
 #
 resource "oci_core_volume_attachment" "essbase_config" {
-  count           = var.enable_config_volume ? 1 : 0
   attachment_type = "iscsi"
   instance_id     = oci_core_instance.essbase.id
-  volume_id       = join("", oci_core_volume.essbase_config.*.id)
+  volume_id       = oci_core_volume.essbase_config.id
 
   display_name = "${var.display_name_prefix}-config-volume-1-attachment"
 }
 
 resource "oci_objectstorage_object" "essbase_config_volume_metadata" {
-  count     = var.enable_config_volume ? 1 : 0
   bucket    = oci_objectstorage_bucket.essbase_metadata.name
   namespace = oci_objectstorage_bucket.essbase_metadata.namespace
-  object    = format("%s/%s.dat", oci_core_instance.essbase.id, join("", oci_core_volume.essbase_config.*.id))
+  object    = format("%s/%s.dat", oci_core_instance.essbase.id, oci_core_volume.essbase_config.id)
   content = jsonencode({
     "path" = local.config_volume_mount,
-    "iqn" = join("", oci_core_volume_attachment.essbase_config.*.iqn),
-    "ipv4" = join("", oci_core_volume_attachment.essbase_config.*.ipv4),
-    "port" = join("", oci_core_volume_attachment.essbase_config.*.port)
+    "iqn" = oci_core_volume_attachment.essbase_config.iqn,
+    "ipv4" = oci_core_volume_attachment.essbase_config.ipv4,
+    "port" = oci_core_volume_attachment.essbase_config.port
   })
 }
 
-locals {
-  external_url = local.assign_public_ip ? format("https://%s/essbase", oci_core_instance.essbase.public_ip) : format("https://%s/essbase", oci_core_instance.essbase.private_ip)
-}
-
-resource "null_resource" "initializer" {
+resource "null_resource" "wait_for_completion" {
+  count = 0
 
   triggers = {
     instance_ocid = oci_core_instance.essbase.id
-    data_volume_ocid = join("", oci_core_volume.essbase_data.*.id)
-    config_volume_ocid = join("", oci_core_volume.essbase_config.*.id)
   }
 
   depends_on = [
-    oci_core_instance.essbase,
-    oci_objectstorage_object.essbase_data_volume_metadata,
-    oci_objectstorage_object.essbase_config_volume_metadata,
+    oci_core_instance.essbase
   ]
 
   connection {
@@ -293,8 +283,12 @@ resource "null_resource" "initializer" {
   }
 
   provisioner "remote-exec" {
-    script = "${path.module}/scripts/configure_essbase.sh"
+    script = "${path.module}/scripts/wait_for_completion.sh"
   }
 
+}
+
+locals {
+  external_url = local.assign_public_ip ? format("https://%s/essbase", oci_core_instance.essbase.public_ip) : format("https://%s/essbase", oci_core_instance.essbase.private_ip)
 }
 

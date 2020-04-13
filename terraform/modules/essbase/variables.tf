@@ -71,22 +71,10 @@ variable "ssh_private_key" {
   type        = string
 }
 
-variable "enable_data_volume" {
-  description = "Enable the data volume for storing application data in an isolated volume"
-  type        = bool
-  default     = true
-}
-
 variable "data_volume_size" {
   description = "The size of the data volume in gigabytes"
   type        = number
   default     = 1024
-}
-
-variable "enable_config_volume" {
-  description = "Enable the config volume to store configuraiton content in an isolated volume"
-  type        = bool
-  default     = true
 }
 
 variable "config_volume_size" {
@@ -205,3 +193,4 @@ variable "defined_tags" {
   type = map(string)
   default = null
 }
+

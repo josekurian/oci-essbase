@@ -13,8 +13,8 @@ output "essbase_node_private_ip" {
   value = module.essbase.node_private_ip
 }
 
-output "essbase_node_domain_name" {
-  value = module.essbase.node_domain_name
+output "essbase_node_display_name" {
+  value = module.essbase.node_display_name
 }
 
 output "essbase_url" {
@@ -53,3 +53,6 @@ output "bastion_host_public_ip" {
   value = module.bastion.public_ip
 }
 
+output "z_messages" {
+  value = "\n\n*********************\nOracle Essbase stack has been provisioned and is now running configuration in the background.\nIt may take up to 20 minutes for configuration to complete.\n*********************\n"
+}

@@ -30,11 +30,6 @@ variable "cidr_block" {
   type = string
 }
 
-variable "target_cidr_block" {
-  type    = string
-  default = "0.0.0.0/0"
-}
-
 variable "dhcp_options_id" {
   type = string
 }

@@ -20,9 +20,7 @@ locals {
   resource_name_prefix = var.service_name != "" ? var.service_name : local.generated_name_prefix
   rcu_schema_prefix    = var.rcu_schema_prefix != "" ? var.rcu_schema_prefix : local.generated_rcu_schema_prefix
 
-  assign_instance_public_ip = var.assign_instance_public_ip && var.use_existing_vcn || (! var.use_existing_vcn) && (! var.create_private_application_subnet)
-
-  enable_bastion = (! local.assign_instance_public_ip)
+  create_bastion = !var.create_public_essbase_instance && var.create_bastion
 
   db_type_map = {
      "Autonomous Database" = "adb"
@@ -58,7 +56,7 @@ module "network" {
   vcn_cidr            = var.vcn_cidr
   dns_label           = local.generated_dns_label
   display_name_prefix = local.resource_name_prefix
-  enable_nat_gateway  = local.enable_bastion
+  enable_nat_gateway  = !var.create_public_essbase_instance
   freeform_tags       = local.freeform_tags
   defined_tags        = local.defined_tags
 }
@@ -71,8 +69,8 @@ module "application-subnet" {
   vcn_id                = module.network.vcn_id
   cidr_block            = var.application_subnet_cidr
   dhcp_options_id       = module.network.default_dhcp_options_id
-  route_table_id        = local.enable_bastion ? module.network.nat_route_table_id : module.network.internet_route_table_id
-  create_private_subnet = var.create_private_application_subnet
+  route_table_id        = var.create_public_essbase_instance ? module.network.internet_route_table_id : module.network.nat_route_table_id
+  create_private_subnet = !var.create_public_essbase_instance
   display_name_prefix   = local.resource_name_prefix
   freeform_tags         = local.freeform_tags
   defined_tags          = local.defined_tags
@@ -85,7 +83,7 @@ module "load-balancer-subnet" {
   existing_subnet_ids = compact(
     [
       var.use_existing_vcn ? var.existing_load_balancer_subnet_id : "",
-      var.use_existing_vcn ? var.existing_load_balancer_subnet_id_2 : "",
+      var.use_existing_vcn && !var.create_public_load_balancer ? var.existing_load_balancer_subnet_id_2 : "",
     ],
   )
   compartment_id      = module.network.compartment_id
@@ -93,7 +91,8 @@ module "load-balancer-subnet" {
   cidr_block          = var.load_balancer_subnet_cidr
   target_cidr_block   = module.application-subnet.cidr_block
   dhcp_options_id     = module.network.default_dhcp_options_id
-  route_table_id      = module.network.internet_route_table_id
+  route_table_id        = var.create_public_load_balancer ? module.network.internet_route_table_id : ""
+  create_private_subnet = !var.create_public_load_balancer
   display_name_prefix = local.resource_name_prefix
   freeform_tags       = local.freeform_tags
   defined_tags        = local.defined_tags
@@ -102,12 +101,11 @@ module "load-balancer-subnet" {
 module "bastion-subnet" {
   source = "./modules/bastion-subnet"
 
-  enabled             = local.enable_bastion
+  enabled             = local.create_bastion
   existing_subnet_id  = var.use_existing_vcn ? var.existing_bastion_subnet_id : ""
   compartment_id      = module.network.compartment_id
   vcn_id              = module.network.vcn_id
   cidr_block          = var.bastion_subnet_cidr
-  target_cidr_block   = module.application-subnet.cidr_block
   dhcp_options_id     = module.network.default_dhcp_options_id
   route_table_id      = module.network.internet_route_table_id
   display_name_prefix = local.resource_name_prefix
@@ -118,7 +116,7 @@ module "bastion-subnet" {
 module "bastion" {
   source = "./modules/bastion"
 
-  enabled             = local.enable_bastion
+  enabled             = local.create_bastion
   compartment_id      = data.oci_identity_compartment.compartment.id
   availability_domain = var.instance_availability_domain
   subnet_id           = module.bastion-subnet.id
@@ -203,7 +201,6 @@ locals {
      "oci" = module.database-oci.connect_string
      "manual" = var.existing_db_connect_string
   }
-
   
 
 }
@@ -226,8 +223,9 @@ module "essbase" {
   node_hostname_prefix = local.generated_node_hostname_prefix
   shape                = var.instance_shape
   subnet_id            = module.application-subnet.id
-  assign_public_ip     = local.assign_instance_public_ip
-  bastion_host         = module.bastion.public_ip
+  assign_public_ip     = var.create_public_essbase_instance
+
+  bastion_host         = local.create_bastion ? module.bastion.public_ip : ""
 
   config_volume_size = var.config_volume_size
   data_volume_size   = var.data_volume_size
@@ -256,6 +254,7 @@ module "essbase" {
   idcs_client_id               = var.security_mode == "idcs" ? var.idcs_client_id : ""
   idcs_client_secret           = var.security_mode == "idcs" ? var.idcs_client_secret_encrypted : ""
   idcs_external_admin_username = var.security_mode == "idcs" ? var.idcs_external_admin_username : ""
+
 }
 
 module "load-balancer" {
@@ -272,5 +271,6 @@ module "load-balancer" {
   freeform_tags       = local.freeform_tags
   defined_tags        = local.defined_tags
 
+  is_private          = !var.create_public_load_balancer
 }
 
