@@ -32,13 +32,15 @@ kms_crypto_endpoint = "<http endpoint for the corresponding key>"
 # application_subnet_cidr = "10.0.1.0/24"
 # bastion_subnet_cidr = "10.0.3.0/24"
 # load_balancer_subnet_cidr = "10.0.4.0/24"
-# create_private_application_subnet = "false"
+# create_public_essbase_instance = "false"
 
 ### Load Balancer Details
 # create_load_balancer = "false"
+# create_public_load_balancer = "true"
 # load_balancer_shape = "100Mbps"
 
 ### Bastion Details
+# create_bastion = "false"
 # bastion_instance_shape = "VM.Standard.E2.1"
 
 ### Essbase instance details
@@ -50,7 +52,6 @@ ssh_public_key = "<Public key used on the instance>"
 # essbase_admin_username = "admin"
 essbase_admin_password_encrypted = "<Password encrypted with provided KMS key>"
 # rcu_schema_prefix = ""
-# assign_instance_public_ip = "true"
 
 ### Security Details
 # security_mode = "idcs"

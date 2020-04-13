@@ -45,17 +45,19 @@
 | application_subnet_cidr | N | 10.0.1.0/24 | The CIDR to assign to the subnet for the target Essbase compute node. This will be created as a regional subnet. |
 | bastion_subnet_cidr | N | 10.0.3.0/24 | The CIDR to assign to the subnet for the bastion host. This will be created as a regional subnet. |
 | load_balancer_subnet_cidr | N | 10.0.4.0/24 | The CIDR to assign to the subnet for the load balancer.  This will be created as regional subnet. |
-| create_private_application_subnet | N | false | Create a private subnet for the Essbase node. A bastion host will be also created. |
+| create_public_essbase_instance | N | false | Select if you want the Essbase node to have a public IP address. |
 
 ## Load Balancer Details
 | Name | Required | Default | Description |
 | ---- | -------- | ------- | ----------- |
 | create_load_balancer | N | false | Provision a load balancer in Oracle Cloud Infrastructure. The load balancer will be provisioned with a demo certificate. The use of demo certificate is not recommended for production workloads. |
+| create_public_load_balancer | N | true | Create the load balancer with a public IP address. |
 | load_balancer_shape | N | 100Mbps | Select which load balancer shape. |
 
 ## Bastion Details
 | Name | Required | Default | Description |
 | ---- | -------- | ------- | ----------- |
+| create_bastion | N | false | Provision a host in Oracle Cloud Infrastructure. The bastion host will be provisioned using a pre-built OCI image that. |
 | bastion_instance_shape | N | VM.Standard.E2.1 | The shape for the bastion compute instance. |
 
 ## Essbase instance details
@@ -69,7 +71,6 @@
 | essbase_admin_username | N | admin | The name of the Essbase system administrator. |
 | essbase_admin_password_encrypted | Y | | The password for the Essbase system administrator, encrypted with the provided KMS key. Use a password that starts with a letter, is between 8 and 30 characters long, contains at least one number, and, optionally, any number of the special characters (`$` `#` `_`). For example, `Ach1z0#d`. |
 | rcu_schema_prefix | N | | Schema prefix to use when running RCU. A value with be automatically generated if not specified. |
-| assign_instance_public_ip | N | true | If the subnet allows for a public ip address, assign one to the Essbase instance. |
 
 ## Security Details
 | Name | Required | Default | Description |
