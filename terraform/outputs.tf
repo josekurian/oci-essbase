@@ -54,5 +54,5 @@ output "bastion_host_public_ip" {
 }
 
 output "z_messages" {
-  value = "\n\n*********************\nOracle Essbase stack has been provisioned and is now running configuration in the background.\nIt may take up to 20 minutes for configuration to complete.\n*********************\n"
+  value = local.wait_for_completion ? "" : "\n\n*********************\nOracle Essbase stack has been provisioned and is now running configuration in the background.\nIt may take up to 20 minutes for configuration to complete.\n*********************\n"
 }

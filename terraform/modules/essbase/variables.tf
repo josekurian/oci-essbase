@@ -168,6 +168,11 @@ variable "reset_system" {
   default = false
 }
 
+variable "wait_for_completion" {
+  type    = bool
+  default = false
+}
+
 // KMS Settings
 variable "kms_key_id" {
   type = string

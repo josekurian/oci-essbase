@@ -69,7 +69,6 @@ resource "oci_core_volume_group" "essbase_volume_group" {
 
 
 locals {
-  assign_public_ip = (! data.oci_core_subnet.application.prohibit_public_ip_on_vnic) && var.assign_public_ip
   hostname_label   = data.oci_core_subnet.application.dns_label != "" ? format("%s-1", var.node_hostname_prefix) : ""
   node_domain_name = data.oci_core_subnet.application.subnet_domain_name != "" ? format(
     "%s.%s",
@@ -148,22 +147,17 @@ write_files:
   permissions: '0644'
   content: |
       ${indent(6, local.essbase_config)}
-
---boundary-0123456789
-MIME-Version: 1.0
-Content-Type: text/x-shellscript
-
-${file("${path.module}/scripts/configure_machine.sh")}
---boundary-0123456789
-MIME-Version: 1.0
-Content-Type: text/x-shellscript
-
-${file("${path.module}/scripts/configure_volumes.sh")}
---boundary-0123456789
-MIME-Version: 1.0
-Content-Type: text/x-shellscript
-
-${file("${path.module}/scripts/configure_essbase.sh")}
+- path: /u01/vmtools/configure_volumes.sh
+  permissions: '0755'
+  content: |
+      ${indent(6, file("${path.module}/scripts/configure_volumes.sh"))}
+- path: /u01/vmtools/essbase-init.sh
+  permissions: '0755'
+  content: |
+      ${indent(6, file("${path.module}/scripts/essbase-init.sh"))}
+runcmd:
+- /u01/vmtools/adjust-limits.sh
+- /u01/vmtools/essbase-init.sh
 --boundary-0123456789--
 TMPL
 }
@@ -179,9 +173,7 @@ resource "oci_core_instance" "essbase" {
 
   create_vnic_details {
     subnet_id = var.subnet_id
-
-    # Temporary until we figure out how to update all of the metadata in the right order
-    assign_public_ip = local.assign_public_ip
+    assign_public_ip = var.assign_public_ip
     hostname_label   = local.hostname_label
   }
 
@@ -262,7 +254,7 @@ resource "oci_objectstorage_object" "essbase_config_volume_metadata" {
 }
 
 resource "null_resource" "wait_for_completion" {
-  count = 0
+  count = var.assign_public_ip || var.wait_for_completion ? 1 : 0
 
   triggers = {
     instance_ocid = oci_core_instance.essbase.id
@@ -273,7 +265,7 @@ resource "null_resource" "wait_for_completion" {
   ]
 
   connection {
-    host        = local.assign_public_ip ? oci_core_instance.essbase.public_ip : oci_core_instance.essbase.private_ip
+    host        = var.assign_public_ip ? oci_core_instance.essbase.public_ip : oci_core_instance.essbase.private_ip
     private_key = var.ssh_private_key
     type        = "ssh"
     user        = "opc"
@@ -289,6 +281,6 @@ resource "null_resource" "wait_for_completion" {
 }
 
 locals {
-  external_url = local.assign_public_ip ? format("https://%s/essbase", oci_core_instance.essbase.public_ip) : format("https://%s/essbase", oci_core_instance.essbase.private_ip)
+  external_url = var.assign_public_ip ? format("https://%s/essbase", oci_core_instance.essbase.public_ip) : format("https://%s/essbase", oci_core_instance.essbase.private_ip)
 }
 

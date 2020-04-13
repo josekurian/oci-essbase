@@ -4,25 +4,6 @@
 # Licensed under the Universal Permissive License v1.0 as shown at http://oss.oracle.com/licenses/upl.
 #
 
-mkdir -p /var/log/essbase /var/run/essbase
-chown opc:opc /var/log/essbase /var/run/essbase
-
-log_file=/var/log/essbase/configure_volumes.out
-touch $log_file
-exec > >(tee -i $log_file) 2>&1
-
-# Add trap to create exit status file
-onComplete() {
-  rv=$?
-  umask 022
-  echo $rv > /var/run/essbase/.configure_volumes.completed
-}
-
-trap onComplete EXIT
-
-# Run this with a timeout of 20 mins
-timeout -s SIGKILL 20m /bin/bash -e <<'EOF'
-
 # Needed to connect to OCI APIs
 export OCI_CLI_AUTH=instance_principal
 
@@ -97,4 +78,3 @@ for volume_ocid in $(echo $instance_metadata | jq -r ".instance.metadata.volume_
   attach_volume ${volume_ocid}
 done
 
-EOF

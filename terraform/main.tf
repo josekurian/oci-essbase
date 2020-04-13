@@ -35,6 +35,8 @@ locals {
      "essbase_stack_name" = local.resource_name_prefix
   }
 
+  wait_for_completion = local.create_bastion || var.create_public_essbase_instance
+
   defined_tags = null
 }
 
@@ -255,6 +257,7 @@ module "essbase" {
   idcs_client_secret           = var.security_mode == "idcs" ? var.idcs_client_secret_encrypted : ""
   idcs_external_admin_username = var.security_mode == "idcs" ? var.idcs_external_admin_username : ""
 
+  wait_for_completion = local.wait_for_completion
 }
 
 module "load-balancer" {
