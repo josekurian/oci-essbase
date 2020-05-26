@@ -32,7 +32,19 @@ variable "subnet_id" {
   type        = string
 }
 
-variable "image_id" {
+variable "listing_id" {
+  description = "the OCID of the resource listing id"
+  type = string
+  default = ""
+}
+
+variable "listing_resource_version" {
+  description = "Version of the resource listing to use"
+  type = string
+  default = ""
+}
+
+variable "listing_resource_id" {
   description = "The OCID of the bastion image"
   type        = string
 }

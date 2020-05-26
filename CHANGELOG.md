@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bastion host is now an optional component.
 - Essbase stack configuration is started in the background, which eliminates the need for the bastion host in private environments.
 - Reorganized the layout of the guided UI.
+- Fixed subscription issue when provisioning bastion custom image.
 
 ## [19.3.0.2.3]
 

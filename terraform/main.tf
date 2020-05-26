@@ -127,7 +127,9 @@ module "bastion" {
   freeform_tags       = local.freeform_tags
   defined_tags        = local.defined_tags
   instance_shape      = var.bastion_instance_shape
-  image_id            = var.bastion_listing_resource_id
+  listing_id          = var.bastion_listing_id
+  listing_resource_version = var.bastion_listing_resource_version
+  listing_resource_id = var.bastion_listing_resource_id
 }
 
 module "database" {
